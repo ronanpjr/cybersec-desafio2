@@ -1,0 +1,57 @@
+# --- Segredos / arquivos sensiveis ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+credentials*
+
+# --- Dados do MongoDB (volumes locais) ---
+data/
+dbdata/
+mongo-data/
+*.bson
+
+# --- Artefatos de execucao do exploit / seed ---
+exploit/output/
+*.token
+seed-output*.txt
+live-lab-*.log
+
+# --- Build Go ---
+/bin/
+/server
+/fixed
+/seed
+cmd/server/server
+cmd/fixed/fixed
+cmd/seed/seed
+*.exe
+*.test
+*.out
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env/
+*.egg-info/
+.pytest_cache/
+
+# --- Node (reserva) ---
+node_modules/
+
+# --- Logs / temporarios ---
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Editores / IDE ---
+.idea/
+.vscode/
+*.iml

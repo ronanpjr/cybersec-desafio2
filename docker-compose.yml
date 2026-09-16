@@ -1,0 +1,65 @@
+# Ambiente 100% reproduzivel e isolado do laboratorio.
+#   docker compose up --build              -> MongoDB + seed + servidor VULNERAVEL (porta 8080)
+#   docker compose --profile fixed up --build -> adiciona o servidor CORRIGIDO (porta 8081)
+#
+# Uso:
+#   python3 exploit/exploit.py --target http://localhost:8080   # resolve o lab
+#   python3 exploit/exploit.py --target http://localhost:8081   # deve falhar (corrigido)
+
+services:
+  mongo:
+    image: mongo:7
+    command: ["--bind_ip_all"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - mongo-data:/data/db
+
+  seed:
+    build: .
+    command: ["/app/seed"]
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: challenge
+      MONGO_DB_FIXED: challenge_fixed
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+
+  server:
+    build: .
+    command: ["/app/server"]
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: challenge
+      ADDR: ":8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+
+  fixed:
+    build: .
+    command: ["/app/fixed"]
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: challenge_fixed
+      ADDR: ":8080"
+    ports:
+      - "8081:8080"
+    profiles: ["fixed"]
+    depends_on:
+      mongo:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+
+volumes:
+  mongo-data:
