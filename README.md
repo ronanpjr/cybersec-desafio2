@@ -91,6 +91,9 @@ cybersec-desafio2/
 ├── exploit/
 │   ├── exploit.py                 # exploração automatizada
 │   └── requirements.txt           # dependência requests
+├── tests/
+│   ├── test_vuln.py               # confirma a vulnerabilidade em HTTP real
+│   └── test_fixed.py              # confirma a mitigação e o login legítimo
 └── documentacao/
     ├── README.md                   # visão geral anterior do laboratório
     ├── plan.md                     # planejamento e decisões históricas
@@ -304,7 +307,25 @@ docker compose logs seed
 - [Abrir aplicação vulnerável](http://localhost:8080/login)
 - [Abrir aplicação corrigida](http://localhost:8081/login)
 
-### 3. Executar contra a versão vulnerável
+### 3. Executar os testes automatizados
+
+Os testes fazem requisições HTTP reais aos dois servidores, sem mocks. Em Linux/macOS:
+
+```bash
+python tests/test_vuln.py --target http://localhost:8080
+python tests/test_fixed.py --target http://localhost:8081
+```
+
+No PowerShell do Windows, use:
+
+```powershell
+py tests\test_vuln.py --target http://localhost:8080
+py tests\test_fixed.py --target http://localhost:8081
+```
+
+Cada script imprime `[OK]` para as verificações aprovadas e termina com código `0` quando todas passam. `test_vuln.py` confirma que `$ne` e `$where` são processados no ambiente vulnerável. `test_fixed.py` confirma que esses payloads são recusados e que o login legítimo continua funcionando.
+
+### 4. Executar o exploit contra a versão vulnerável
 
 ```bash
 python exploit/exploit.py --target http://localhost:8080
@@ -327,7 +348,7 @@ python exploit/exploit.py --target http://localhost:8080 \
   --new-password 'SenhaDoLaboratorio123!' --workers 8 --debug
 ```
 
-### 4. Repetir contra a versão corrigida
+### 5. Repetir contra a versão corrigida
 
 ```bash
 python exploit/exploit.py --target http://localhost:8081
@@ -341,7 +362,7 @@ AssertionError: $ne nao aceito (sem 'Account locked')
 
 Nesse teste, a saída com erro é esperada: o script interrompe porque não consegue confirmar a injeção. As verificações manuais da seção seguinte também permitem conferir que o login legítimo continua funcionando.
 
-### 5. Reinicializar ou encerrar
+### 6. Reinicializar ou encerrar
 
 O ataque bem-sucedido remove o token e desbloqueia a conta local. Como o script confirma a injeção **antes** de solicitar outro reset, uma segunda execução pode falhar nessa etapa. Para repetir desde o início:
 
@@ -455,7 +476,7 @@ São **registros textuais de execuções anteriores**, não comprovação de que
 
 Na revisão deste README, foram conferidos o código, as opções de `exploit.py --help` e a configuração com `docker compose --profile fixed config --quiet`. A execução completa não foi repetida: o ambiente de revisão não permitiu acesso ao socket Docker, e o Go instalado no host era 1.22.2, inferior ao 1.26 declarado pelo projeto. Portanto, as saídas das instruções acima estão identificadas como **esperadas**, com os resultados históricos atribuídos aos respectivos documentos.
 
-O repositório não contém uma suíte de testes automatizados dedicada. O exploit e os comandos de comparação são verificações funcionais do cenário de estudo.
+O repositório contém dois testes funcionais automatizados: `tests/test_vuln.py`, que confirma a aceitação de `$ne` e a avaliação booleana de `$where` na versão vulnerável, e `tests/test_fixed.py`, que confirma o bloqueio desses payloads e preserva o login legítimo. Ambos exercitam os serviços reais via HTTP e exigem que o ambiente Docker Compose esteja em execução.
 
 ## 11. Decisões, dificuldades e limitações
 
