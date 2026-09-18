@@ -12,6 +12,8 @@ Reprodução didática do laboratório **PRACTITIONER** do PortSwigger Web Secur
 > didática, isolada em containers. Não use as técnicas aqui descritas fora de alvos com autorização
 > explícita (`$where` permite execução de JavaScript no MongoDB).
 
+> **Nota de manutenção.** Este é um resumo complementar. Para instruções atuais de execução e a organização canônica do projeto, use o [README da raiz](../README.md). Os detalhes do ataque, da prevenção e da execução hospedada estão em [`docs/`](docs/).
+
 ---
 
 ## Por que existe uma reimplementação
@@ -23,7 +25,7 @@ reimplementamos fielmente:
 - as **mensagens de resposta** exatas (`Invalid username or password`,
   `Account locked: please reset your password`, `Invalid token`), que formam o oráculo booleano;
 - o **comportamento da conta-alvo** (`carlos` já nasce com token de reset pendente → conta "locked");
-- a mecânica de que **o campo do token só passa a existir após disparar o "esqueci minha senha"**.
+- no laboratório hospedado, a mecânica de que **o campo do token só passa a existir após disparar o "esqueci minha senha"**; localmente, esse pedido renova o token que o seed já criou.
 
 Assim, **o mesmo exploit** roda contra o lab ao vivo e contra a versão local.
 
@@ -46,13 +48,16 @@ Assim, **o mesmo exploit** roda contra o lab ao vivo e contra a versão local.
 ├── exploit/
 │   ├── exploit.py       # exfiltração booleana automatizada (Python/requests)
 │   └── requirements.txt
-├── docs/
-│   ├── WRITEUP.md       # passo a passo reproduzível + decisões + perguntas
-│   ├── LAB_LIVE.md      # execução real contra o lab do PortSwigger
-│   └── PREVENTION.md    # como corrigir (allowlist, tipos, query tipada, schema)
+├── documentacao/
+│   ├── README.md        # este resumo complementar
+│   ├── plan.md          # registro de planejamento e decisões
+│   └── docs/
+│       ├── WRITEUP.md   # passo a passo reproduzível + decisões + perguntas
+│       ├── LAB_LIVE.md  # execução real contra o lab do PortSwigger
+│       └── PREVENTION.md # como corrigir (allowlist, tipos, query tipada, schema)
 ├── docker-compose.yml   # mongo + seed + server (vuln) + fixed
 ├── Dockerfile           # build multi-stage dos 3 binários
-└── plan.md              # plano/rastro de decisões do trabalho
+└── README.md            # documentação principal e guia de execução
 ```
 
 ## Pré-requisitos
@@ -91,7 +96,7 @@ python3 exploit/exploit.py --target https://<SUA-INSTANCIA>.web-security-academy
 | `GET`  | `/login` | página de login |
 | `POST` | `/login` | **ponto de injeção** — recebe JSON; repassa cru ao `FindOne` (vuln) |
 | `GET`  | `/forgot-password` | formulário; com `?passwordReset=<token>` valida o token |
-| `POST` | `/forgot-password` | `username` → dispara reset (cria o campo do token) / token + senhas → troca |
+| `POST` | `/forgot-password` | `username` → solicita e renova o token de reset / token + senhas → troca |
 | `GET`  | `/my-account` | prova de sessão autenticada (`Logged in as ...`) |
 
 ## Resumo do ataque

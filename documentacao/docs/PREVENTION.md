@@ -12,7 +12,7 @@ json.NewDecoder(r.Body).Decode(&filter)      // corpo inteiro, chaves incluídas
 s.Users.FindOne(r.Context(), filter).Decode(&user)
 ```
 
-## Corrigido (`internal/app/fixed.go`) — três camadas
+## Controles primários na aplicação (`internal/app/fixed.go`)
 
 ### (1) Allowlist de chaves aceitas
 ```go
@@ -39,6 +39,8 @@ if err := json.Unmarshal(raw["password"], &password); err != nil { /* 400 */ }
 filter := bson.M{"username": username, "password": password}
 ```
 A consulta é montada apenas com strings controladas — nunca com o corpo bruto do usuário.
+
+## Defesas complementares
 
 ### (4) Schema estrito no MongoDB (defesa em profundidade)
 

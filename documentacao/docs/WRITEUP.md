@@ -93,12 +93,13 @@ curl -s -H 'Content-Type: application/json' \
 documento; `"1"` (truthy) mantém. Como as respostas divergem, o JS está sendo executado — logo
 podemos usar JavaScript para inspecionar e exfiltrar dados.
 
-### Passo 2.4 — Disparar o "esqueci minha senha" (cria o campo do token)
+### Passo 2.4 — Disparar o "esqueci minha senha" (renova o token local; cria o campo no lab hospedado)
 
-**Descoberta empírica importante:** antes deste passo, o documento de `carlos` tem **4** campos
-(`_id`, `username`, `password`, `email`). O campo do token **só passa a existir depois** que o
-fluxo de reset é solicitado (o token é gerado e gravado; o e-mail de verificação impede que o
-atacante conclua o reset sozinho). Isso confirma o passo 4 da solução oficial.
+**Diferença importante entre os alvos:** no laboratório hospedado, antes deste passo o documento de
+`carlos` tem **4** campos (`_id`, `username`, `password`, `email`); o campo do token só surge após
+o reset ser solicitado. Na reimplementação local, o seed já cria `carlos` com `passwordReset` para
+manter a conta bloqueada desde o início; este pedido apenas gera e grava um novo token. O passo é
+mantido porque corresponde ao fluxo do alvo hospedado e é necessário para a execução contra ele.
 
 ```bash
 # pega o cookie e o token CSRF da página
@@ -111,7 +112,7 @@ curl -s -b cj.txt -c cj.txt -d "csrf=$CSRF&username=carlos" \
 # -> "If the account exists, an email has been sent."
 ```
 
-Verificação de que o campo surgiu (agora há 5 campos):
+No alvo hospedado, verificação de que o campo surgiu (agora há 5 campos):
 
 ```bash
 curl -s -H 'Content-Type: application/json' \
@@ -262,7 +263,7 @@ caem num caminho de teste individual (`_subset_matches`).
   ("campo desconhecido") é mantida.
 - **Sem hardcode no exploit:** o exploit não conhece nem o nome do campo nem o valor do token.
 - **Corrigir com três camadas:** allowlist de chaves + validação de tipos + construção tipada da
-  consulta, mais um validador `$jsonSchema` no MongoDB (ver `docs/PREVENTION.md`).
+  consulta, mais um validador `$jsonSchema` no MongoDB (ver [`PREVENTION.md`](PREVENTION.md)).
 
 ---
 
@@ -301,5 +302,5 @@ caem num caminho de teste individual (`_subset_matches`).
 
 - Execução contra a **reimplementação vulnerável** (`:8080`): sucesso, logado como `carlos`.
 - Execução contra a **versão corrigida** (`:8081`): falha na confirmação da injeção
-  (`$ne` não aceito) — ver `docs/PREVENTION.md`.
-- Execução contra o **lab ao vivo**: ver `docs/LAB_LIVE.md` (banner **Solved**).
+  (`$ne` não aceito) — ver [`PREVENTION.md`](PREVENTION.md).
+- Execução contra o **lab ao vivo**: ver [`LAB_LIVE.md`](LAB_LIVE.md) (banner **Solved**).

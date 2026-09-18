@@ -8,6 +8,8 @@ O trabalho parte do laboratório **“Exploiting NoSQL operator injection to ext
 
 **[Abrir os slides da apresentação no Canva](https://canva.link/9sj5huqb3rm1dfa)** · **[Abrir o desafio e a solução oficial](https://portswigger.net/web-security/nosql-injection/lab-nosql-injection-extract-unknown-fields)**
 
+> **Uso autorizado somente.** Os exemplos de exploração servem exclusivamente ao laboratório PortSwigger e à reimplementação local deste repositório. Não os utilize contra sistemas sem autorização explícita.
+
 ## Sumário
 
 - [1. Visão geral e objetivo](#1-visão-geral-e-objetivo)
